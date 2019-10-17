@@ -1,0 +1,33 @@
+{
+  "name": "@ami/tcp",
+  "version": "1.0.0",
+  "description": "AMI TCP Wrapper",
+  "main": "index.js",
+  "publishConfig": {
+    "registry": "http://npm:4873"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageReporters": [
+      "text"
+    ]
+  },
+  "dependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://am-gitlab.amthinking.net/software-engineering-tools/ami-tcp"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.6.4",
+    "@babel/plugin-proposal-throw-expressions": "^7.2.0",
+    "@babel/preset-env": "^7.6.3",
+    "babel-jest": "^24.9.0",
+    "jest": "^24.9.0"
+  },
+  "author": "Ivo Janssen <ijanssen@appliedminds.com>",
+  "contributors": [],
+  "license": "UNLICENSED"
+}
