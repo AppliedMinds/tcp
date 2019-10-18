@@ -68,7 +68,7 @@ class Motor extends TCPDevice {
 API Documentation
 -----------------
 
-### `new Device({ ip, port, reconnectInterval?, autoConnect? })`
+### `new Device({ ip : String, port : Number, reconnectInterval? : Number, autoConnect? : Boolean })`
 
 Constructor
 
@@ -78,19 +78,31 @@ Constructor
   
 ### `Device.connect()` : `<Promise>`
 
-Open connection to TCP service/device
+Open connection to TCP service/device. Resolves when connection has been made.
 
-### `Device.onReceive(data)`
+### `Device.onReceive(data : Buffer)` : void
 
 Override in child classes. Automatically called when data is available from the service/device.
 
   * `data`: Incoming string
 
-### `Device.send(data)` : `<Promise>`
+### `Device.request(command : Buffer/String, expectedResponse : String/Regex, errorResponse? : String/Regex)` : `<Promise>`
+
+Make a request and wait for a response.
+
+ * `command`: String or buffer to send
+ * `expectedResponse`: Regex or String to use to indicate a successful response
+ * `errorResponse`: Regex or string to use to indicate an error response
+
+The returned Promise will resolve to a list of regex tokens (a list of length 1 if just a string supplied)
+
+### `Device.send(data : Buffer/String)` : `<Promise>`
 
 Send data to service/device.
 
-  * `data`: Outgoing string
+  * `data`: Outgoing buffer or string
+
+Resolves when data has been sent.
 
 Development & Tests
 -------------------
