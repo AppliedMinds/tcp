@@ -50,17 +50,17 @@ class Motor extends TCPDevice {
         this.state = 'stopped'
     }
     backward() {
-        this.send('B')
+        this.send(Buffer.from([0x02]))
     }
     forward() {
-        this.send('F')
+        this.send(Buffer.from([0x01]))
     }
     onReceive(data) {
         // Set our state when the device relays its state
         this.state = data
     }
     stop() {
-        this.send('S')
+        this.send(Buffer.from([0x03]))
     }
 }
 ```
