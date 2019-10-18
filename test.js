@@ -84,6 +84,13 @@ describe('Device Requests', () => {
         let response = await device.request('other-request', 'example-response')
         expect(response).toEqual(expect.arrayContaining(['example-response']))
     })
+    it('should timeout if a request was not satisfied on time', async() => {
+        await device.connect()
+        device.responseTimeout = 5
+        let response = device.request('unknown-request', 'never')
+        await expect(response).rejects.toThrow('Timeout')
+        device.responseTimeout = 3000
+    })
 })
 
 describe('Device Reconnect', () => {

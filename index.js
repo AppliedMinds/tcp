@@ -2,12 +2,13 @@ const net = require('net')
 const EventEmitter = require('events')
 
 class Device extends EventEmitter {
-    constructor({ ip, port, reconnectInterval=3 }) {
+    constructor({ ip, port, reconnectInterval=3, responseTimeout=3 }) {
         super()
         this.ip = ip
         this.port = port
         this.active = false
         this.reconnectInterval = reconnectInterval
+        this.responseTimeout = responseTimeout * 1000
         this.state = {}
     }
     connect() {
@@ -56,10 +57,15 @@ class Device extends EventEmitter {
                 let success = msg.match(expectedResponse)
                 let failure = errResponse ? msg.match(errResponse) : false
                 if (!success && !failure) return
+                clearTimeout(timeout)
                 this.socket.off('data', receiver)
                 if (failure) rej(failure)
                 else res(success)
             }
+            const timeout = setTimeout(() => {
+                this.socket.off('data', receiver)
+                rej(new Error('Timeout while waiting for response!'))    
+            }, this.responseTimeout)
             this.socket.on('data', receiver)
         })
         this.send(command)

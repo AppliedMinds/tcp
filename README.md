@@ -68,13 +68,14 @@ class Motor extends TCPDevice {
 API Documentation
 -----------------
 
-### `new Device({ ip : String, port : Number, reconnectInterval? : Number, autoConnect? : Boolean })`
+### `new Device({ ip : String, port : Number, reconnectInterval? : Number, responseTimeout? : Number })`
 
 Constructor
 
   * `ip`: IP address of device/service
   * `port`: Numeric TCP port of device/service
   * `reconnectInterval`: Seconds until reconnect attempt after disconnect or error (default: `3`)
+  * `responseTimeout`: Seconds until a call to `request()` will automatically time out (default: `3`)
   
 ### `Device.connect()` : `<Promise>`
 
