@@ -1,0 +1,15 @@
+image: node:12
+
+# Cache in-between jobs
+cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+        - node_modules/
+
+before_script:
+    - npm install
+
+test:
+    script:
+        - npm test
+    coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
