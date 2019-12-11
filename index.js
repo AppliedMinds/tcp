@@ -6,16 +6,14 @@ class Device extends EventEmitter {
         super()
         this.ip = ip
         this.port = port
-        this.active = false
         this.reconnectInterval = reconnectInterval
         this.responseTimeout = responseTimeout * 1000
-        this.state = {}
     }
     connect() {
         this.socket = new net.Socket()
-        this.socket.on('data', this.onReceive.bind(this))
+        this.socket.on('data', this.emit.bind(this, 'data'))
         this.socket.on('close', this.onDisconnect.bind(this))
-        this.socket.on('error', this.onError.bind(this))
+        this.socket.on('error', this.emit.bind(this, 'error'))
         this.socket.setKeepAlive(true)
         // Send immediately when write() is called, no buffering
         this.socket.setNoDelay()
@@ -27,27 +25,19 @@ class Device extends EventEmitter {
     async close() {
         if (this.socket) {
             await new Promise(res => this.socket.end(res))
-            console.info(`Connection to ${this.type} at ${this.ip}:${this.port} closed!`)
         }
     }
     onConnect() {
-        console.info(`Connected to ${this.type} at ${this.ip}:${this.port}`)
         this.connected = true
+        this.emit('connect')
     }
     onDisconnect(onError) {
         if (onError) {
             this.socket.destroy()
-            let message = `Connection to ${this.type} at ${this.ip}:${this.port} lost!`
-            message = `${message} Attempting reconnect in ${this.reconnectInterval} seconds...`
+            this.emit('reconnect', `Connection at at ${this.ip}:${this.port} lost! Attempting reconnect in ${this.reconnectInterval} seconds...`)
             setTimeout(this.connect.bind(this), this.reconnectInterval * 1000)
-            console.warn(message)
         }
-    }
-    onError(err) {
-        console.error(`Error on connection to ${this.type} at ${this.ip}:${this.port}: ${err.code}`)
-    }
-    onReceive() {
-        // Overwrite this function in child class
+        this.emit('close')
     }
     // Make a request and wait for a response
     request(command, expectedResponse, errResponse) {
@@ -73,9 +63,6 @@ class Device extends EventEmitter {
     }
     async send(command) {
         return new Promise((res) => this.socket.write(command, res))
-    }
-    get type() {
-        return `Unknown ${this.constructor.name}`
     }
 }
 

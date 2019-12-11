@@ -1,5 +1,5 @@
-AMI TCP Wrapper
-===============
+AMI TCP Device
+==============
 
 Base class for creating TCP-based service integrations with Node.js.
 
@@ -37,36 +37,38 @@ npm install @ami/tcp
 Usage / Examples
 ----------------
 
-`Device` should be used as a base class for any TCP-based service.
+Create a new `Device` for any TCP-based service.
 
 For example, imagine a device that uses a single byte 0x01, 0x02 or 0x03 to send forward, back or stop commands, respectively:
 
 ```javascript
 const TCPDevice = require('@ami/tcp').Device
 
-class Motor extends TCPDevice {
+class Motor {
     constructor(ip) {
-        super({ ip, port: 28836 })
+        this.device = new TCPDevice({ ip, port: 28836 })
+        this.device.on('data', this.onReceive.bind(this))
+        this.device.connect()
         this.state = 'stopped'
     }
     backward() {
-        this.send(Buffer.from([0x02]))
+        this.device.send(Buffer.from([0x02]))
     }
     forward() {
-        this.send(Buffer.from([0x01]))
+        this.device.send(Buffer.from([0x01]))
     }
     onReceive(data) {
         // Set our state when the device relays its state
         this.state = data
     }
     stop() {
-        this.send(Buffer.from([0x03]))
+        this.device.send(Buffer.from([0x03]))
     }
 }
 ```
 
-API Documentation
------------------
+API Methods
+-----------
 
 ### `new Device({ ip : String, port : Number, reconnectInterval? : Number, responseTimeout? : Number })`
 
@@ -80,12 +82,6 @@ Constructor
 ### `Device.connect()` : `<Promise>`
 
 Open connection to TCP service/device. Resolves when connection has been made.
-
-### `Device.onReceive(data : Buffer)` : void
-
-Override in child classes. Automatically called when data is available from the service/device.
-
-  * `data`: Incoming string
 
 ### `Device.request(command : Buffer/String, expectedResponse : String/Regex, errorResponse? : String/Regex)` : `<Promise>`
 
@@ -104,6 +100,29 @@ Send data to service/device.
   * `data`: Outgoing buffer or string
 
 Resolves when data has been sent.
+
+API Events
+----------
+
+### `close`
+
+Emitted when the device has been closed (either expected or unexpected)
+
+### `connect`
+
+Emitted when a successful connection has been made.
+
+### `data`
+
+Emitted with a `Buffer` when data is received from the device.
+
+### `error`
+
+Emitted when an error is encountered.
+
+### `reconnect`
+
+Emitted with a reconnection message when a reconnection is attempted.
 
 Development & Tests
 -------------------

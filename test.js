@@ -42,26 +42,28 @@ describe('Device Setup', () => {
     it('should set the default port', () => {
         expect(device.port).toBe(3003)
     })
-    it('should report its type', () => {
-        expect(device.type).toEqual(expect.any(String))
-    })
 })
 
 describe('Device Listeners', () => {
     it('should receive socket data', async () => {
-        let receive = jest.spyOn(device, 'onReceive')
+        let receive = jest.fn()
+        device.on('data', receive)
         await device.connect()
         device.socket.emit('data', 'zzz')
         expect(receive).toHaveBeenCalled()
     })
     it('should disconnect on socket close', async () => {
         let disconnect = jest.spyOn(device, 'onDisconnect')
+        let listener = jest.fn()
+        device.on('close', listener)
         await device.connect()
         device.socket.emit('close')
         expect(disconnect).toHaveBeenCalled()
+        expect(listener).toHaveBeenCalled()
     })
     it('should report socket errors', async () => {
-        let error = jest.spyOn(device, 'onError')
+        let error = jest.fn()
+        device.on('error', error)
         await device.connect()
         device.socket.emit('error', 'testing')
         expect(error).toHaveBeenCalled()
@@ -105,18 +107,11 @@ describe('Device Reconnect', () => {
 })
 
 describe('Device Errors', () => {
-    it('should log errors from the socket', async () => {
-        let error = jest.spyOn(console, 'error')
+    it('should emit errors from the socket', async () => {
+        let error = jest.fn()
+        device.on('error', error)
         await device.connect()
-        device.socket.emit('error', new Error())
-        expect(error).toHaveBeenCalled()
-    })
-    it('should log all error information', async () => {
-        let error = jest.spyOn(console, 'error')
-        let err = new Error()
-        err.code = 420
-        await device.connect()
-        device.socket.emit('error', err)
-        expect(error).toHaveBeenCalledWith(expect.stringMatching(/Error on connection/))
+        device.socket.emit('error', 'real error')
+        expect(error).toHaveBeenCalledWith('real error')
     })
 })
