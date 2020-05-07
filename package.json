@@ -21,11 +21,11 @@
     "url": "https://am-gitlab.amthinking.net/software-engineering-tools/ami-tcp"
   },
   "devDependencies": {
-    "@babel/core": "^7.6.4",
-    "@babel/plugin-proposal-throw-expressions": "^7.2.0",
-    "@babel/preset-env": "^7.6.3",
-    "babel-jest": "^24.9.0",
-    "jest": "^24.9.0"
+    "@babel/core": "^7.9.6",
+    "@babel/plugin-proposal-throw-expressions": "^7.8.3",
+    "@babel/preset-env": "^7.9.6",
+    "babel-jest": "^26.0.1",
+    "jest": "^26.0.1"
   },
   "author": "Ivo Janssen <ijanssen@appliedminds.com>",
   "contributors": [],
