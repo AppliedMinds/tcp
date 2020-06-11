@@ -41,11 +41,11 @@ class Device extends EventEmitter {
     }
     // Make a request and wait for a response
     request(command, expectedResponse, errResponse) {
-        let receipt = new Promise((res, rej) => {
-            let receiver = (msg) => {
+        const receipt = new Promise((res, rej) => {
+            const receiver = (msg) => {
                 msg = msg.toString()
-                let success = msg.match(expectedResponse)
-                let failure = errResponse ? msg.match(errResponse) : false
+                const success = msg.match(expectedResponse)
+                const failure = errResponse ? msg.match(errResponse) : false
                 if (!success && !failure) return
                 clearTimeout(timeout)
                 this.socket.off('data', receiver)
