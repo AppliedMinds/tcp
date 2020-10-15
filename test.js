@@ -1,11 +1,11 @@
 import net from 'net'
 import { Device } from './index.js'
-const delay = (ms) => new Promise((res) => setTimeout(res, ms))
+const delay = ms => new Promise(res => setTimeout(res, ms))
 
-var server, device
+let server, device
 
 beforeEach(done => {
-    server = net.createServer(socket => { 
+    server = net.createServer(socket => {
         socket.on('data', data => {
             const msg = data.toString()
             if (msg === 'example-request') {
@@ -26,7 +26,7 @@ beforeEach(done => {
     server.listen(3003, done)
 })
 
-afterEach(async(done) => {
+afterEach(async done => {
     await device.close()
     server.close(done)
 })
@@ -98,7 +98,7 @@ describe('Device Requests', () => {
 describe('Device Reconnect', () => {
     it('should try to reconnect after disconnecting on error', async () => {
         const connect = jest.spyOn(device, 'connect')
-        device.reconnectInterval = .005
+        device.reconnectInterval = 0.005
         await device.connect()
         device.socket.emit('close', new Error())
         await delay(10) // Device attempts reconnect after 5ms

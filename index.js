@@ -1,13 +1,16 @@
 const net = require('net')
 const EventEmitter = require('events')
 
+const DEFAULT_RECONNECT_INTERVAL = 3 // seconds
+const SECOND = 1000 // ms
+
 class Device extends EventEmitter {
-    constructor({ ip, port, reconnectInterval=3, responseTimeout=3 }) {
+    constructor({ ip, port, reconnectInterval = DEFAULT_RECONNECT_INTERVAL, responseTimeout = DEFAULT_RECONNECT_INTERVAL }) {
         super()
         this.ip = ip
         this.port = port
         this.reconnectInterval = reconnectInterval
-        this.responseTimeout = responseTimeout * 1000
+        this.responseTimeout = responseTimeout * SECOND
     }
     connect() {
         this.socket = new net.Socket()
@@ -35,14 +38,14 @@ class Device extends EventEmitter {
         if (onError) {
             this.socket.destroy()
             this.emit('reconnect', `Connection at at ${this.ip}:${this.port} lost! Attempting reconnect in ${this.reconnectInterval} seconds...`)
-            setTimeout(this.connect.bind(this), this.reconnectInterval * 1000)
+            setTimeout(this.connect.bind(this), this.reconnectInterval * SECOND)
         }
         this.emit('close')
     }
     // Make a request and wait for a response
     request(command, expectedResponse, errResponse) {
         const receipt = new Promise((res, rej) => {
-            const receiver = (msg) => {
+            const receiver = msg => {
                 msg = msg.toString()
                 const success = msg.match(expectedResponse)
                 const failure = errResponse ? msg.match(errResponse) : false
@@ -54,15 +57,15 @@ class Device extends EventEmitter {
             }
             const timeout = setTimeout(() => {
                 this.socket.off('data', receiver)
-                rej(new Error('Timeout while waiting for response!'))    
+                rej(new Error('Timeout while waiting for response!'))
             }, this.responseTimeout)
             this.socket.on('data', receiver)
         })
         this.send(command)
         return receipt
     }
-    async send(command) {
-        return new Promise((res) => this.socket.write(command, res))
+    send(command) {
+        return new Promise(res => this.socket.write(command, res))
     }
 }
 

@@ -22,6 +22,7 @@
     "url": "https://am-gitlab.amthinking.net/software-engineering-tools/ami-tcp"
   },
   "devDependencies": {
+    "@ami/eslint-config": "^1.0.7",
     "@babel/core": "^7.12.0",
     "@babel/plugin-proposal-throw-expressions": "^7.10.4",
     "@babel/preset-env": "^7.12.0",
@@ -34,59 +35,9 @@
   "contributors": [],
   "license": "UNLICENSED",
   "eslintConfig": {
-    "env": {
-      "es6": true,
-      "jest/globals": true,
-      "node": true
-    },
-    "parserOptions": {
-      "ecmaVersion": 2020,
-      "sourceType": "module"
-    },
     "extends": [
-      "eslint:recommended",
+      "@ami",
       "plugin:jest/recommended"
-    ],
-    "plugins": [
-      "jest"
-    ],
-    "rules": {
-      "camelcase": "error",
-      "eqeqeq": [
-        "warn",
-        "always"
-      ],
-      "indent": [
-        "error",
-        4
-      ],
-      "linebreak-style": [
-        "error",
-        "unix"
-      ],
-      "no-console": [
-        "error",
-        {
-          "allow": [
-            "warn",
-            "info",
-            "error"
-          ]
-        }
-      ],
-      "object-curly-spacing": [
-        "warn",
-        "always"
-      ],
-      "prefer-const": "warn",
-      "quotes": [
-        "error",
-        "single"
-      ],
-      "semi": [
-        "error",
-        "never"
-      ]
-    }
+    ]
   }
 }
