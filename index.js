@@ -12,7 +12,7 @@ class Device extends EventEmitter {
         this.reconnectInterval = reconnectInterval
         this.responseTimeout = responseTimeout * SECOND
     }
-    connect() {
+    connect(reconnect = false) {
         this.socket = new net.Socket()
         this.socket.on('data', this.emit.bind(this, 'data'))
         this.socket.on('close', this.onDisconnect.bind(this))
@@ -21,7 +21,14 @@ class Device extends EventEmitter {
         // Send immediately when write() is called, no buffering
         this.socket.setNoDelay()
         return new Promise(resolve => {
-            this.socket.on('connect', resolve)
+            const connectTimeout = setTimeout(this.onTimeout.bind(this), this.responseTimeout)
+            this.socket.on('connect', () => {
+                clearTimeout(connectTimeout)
+            })
+            // Update our resolver if this is an initial connection
+            // so the client can await the `connect()` call correctly
+            // in case of reconnects
+            if (!reconnect) this.connectResolver = resolve
             this.socket.connect(this.port, this.ip, this.onConnect.bind(this))
         })
     }
@@ -31,16 +38,20 @@ class Device extends EventEmitter {
         }
     }
     onConnect() {
+        if (this.connectResolver) this.connectResolver()
         this.connected = true
         this.emit('connect')
     }
     onDisconnect(onError) {
         if (onError) {
-            this.socket.destroy()
             this.emit('reconnect', `Connection at at ${this.ip}:${this.port} lost! Attempting reconnect in ${this.reconnectInterval} seconds...`)
-            setTimeout(this.connect.bind(this), this.reconnectInterval * SECOND)
+            setTimeout(this.connect.bind(this, true), this.reconnectInterval * SECOND)
         }
         this.emit('close')
+    }
+    onTimeout() {
+        this.emit('timeout')
+        this.socket.destroy(new Error(`Timeout connecting to ${this.ip}:${this.port}`))
     }
     // Make a request and wait for a response
     request(command, expectedResponse, errResponse) {

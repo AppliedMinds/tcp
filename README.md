@@ -120,6 +120,10 @@ Emitted with a `Buffer` when data is received from the device.
 
 Emitted when an error is encountered.
 
+### `timeout`
+
+Emitted when a connection or message times out (also emits `error`, but allows for separate behavior)
+
 ### `reconnect`
 
 Emitted with a reconnection message when a reconnection is attempted.

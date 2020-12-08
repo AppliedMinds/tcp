@@ -96,13 +96,42 @@ describe('Device Requests', () => {
 })
 
 describe('Device Reconnect', () => {
+    it('should try to reconnect if initial connection cannot be made', async() => {
+        // Watch error handler
+        const error = jest.fn()
+        device.on('error', error)
+        // Watch connection
+        const connectEvent = jest.fn()
+        device.on('connect', connectEvent)
+        // Attempt connection
+        const connect = jest.spyOn(device, 'connect')
+        device.ip = '10.255.255.1'
+        // 50ms timout, 5ms reconnect
+        device.responseTimeout = 50
+        device.reconnectInterval = 0.005
+        const promise = device.connect()
+        // Wait at least 55ms to ensure we catch a reconnect/timeout
+        await delay(70)
+        expect(connect).toHaveBeenCalledTimes(2)
+        expect(error).toHaveBeenCalledTimes(1)
+        expect(error).toHaveBeenCalledWith(expect.objectContaining({ message: 'Timeout connecting to 10.255.255.1:3003' }))
+        expect(connectEvent).toHaveBeenCalledTimes(0)
+        // Set to a valid IP and check the original promise still resolves
+        device.ip = '127.0.0.1'
+        await expect(promise).resolves.toBe(undefined)
+    })
     it('should try to reconnect after disconnecting on error', async () => {
+        // Track close event
+        const close = jest.fn()
+        device.on('close', close)
+        device.on('error', () => {})
         const connect = jest.spyOn(device, 'connect')
         device.reconnectInterval = 0.005
         await device.connect()
-        device.socket.emit('close', new Error())
-        await delay(10) // Device attempts reconnect after 5ms
+        device.socket.destroy(new Error('A Serious Failure'))
+        await delay(50) // Device attempts reconnect after 5ms
         expect(connect).toHaveBeenCalledTimes(2)
+        expect(close).toHaveBeenCalledTimes(1)
     })
 })
 
