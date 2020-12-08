@@ -111,9 +111,9 @@ describe('Device Reconnect', () => {
         device.reconnectInterval = 0.005
         const promise = device.connect()
         // Wait at least 55ms to ensure we catch a reconnect/timeout
-        await delay(70)
-        expect(connect).toHaveBeenCalledTimes(2)
-        expect(error).toHaveBeenCalledTimes(1)
+        await delay(65)
+        expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
+        expect(error.mock.calls.length).toBeGreaterThanOrEqual(1)
         expect(error).toHaveBeenCalledWith(expect.objectContaining({ message: 'Timeout connecting to 10.255.255.1:3003' }))
         expect(connectEvent).toHaveBeenCalledTimes(0)
         // Set to a valid IP and check the original promise still resolves
