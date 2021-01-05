@@ -2,10 +2,12 @@ import net from 'net'
 import { Device } from './index.js'
 const delay = ms => new Promise(res => setTimeout(res, ms))
 
-let server, device
+let server, device, openSocket
 
 beforeEach(done => {
     server = net.createServer(socket => {
+        // Track open socket so we can simulate a server closing their connection
+        openSocket = socket
         socket.on('data', data => {
             const msg = data.toString()
             if (msg === 'example-request') {
@@ -28,7 +30,8 @@ beforeEach(done => {
 
 afterEach(async done => {
     await device.close()
-    server.close(done)
+    if (server.listening) server.close(done)
+    else done()
 })
 
 describe('Device Setup', () => {
@@ -132,6 +135,19 @@ describe('Device Reconnect', () => {
         await delay(50) // Device attempts reconnect after 5ms
         expect(connect).toHaveBeenCalledTimes(2)
         expect(close).toHaveBeenCalledTimes(1)
+    })
+    it('should try to reconnect if the client closes the connection', async() => {
+        const connect = jest.spyOn(device, 'connect')
+        device.reconnectInterval = 0.005
+        await device.connect()
+        // Wait a split second to ensure the server receives the new connection
+        await delay(50)
+        // Pretend the server closes the connection
+        await new Promise(res => {
+            openSocket.end(res)
+        })
+        await delay(100)
+        expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
     })
 })
 

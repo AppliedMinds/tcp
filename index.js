@@ -11,8 +11,11 @@ class Device extends EventEmitter {
         this.port = port
         this.reconnectInterval = reconnectInterval
         this.responseTimeout = responseTimeout * SECOND
+        this.connected = false
+        this.userClose = false
     }
     connect(reconnect = false) {
+        this.userClose = false
         this.socket = new net.Socket()
         this.socket.on('data', this.emit.bind(this, 'data'))
         this.socket.on('close', this.onDisconnect.bind(this))
@@ -33,9 +36,12 @@ class Device extends EventEmitter {
         })
     }
     async close() {
+        // Signal the user intentionally closed the socket
+        this.userClose = true
         if (this.socket) {
             await new Promise(res => this.socket.end(res))
         }
+        this.connected = false
     }
     onConnect() {
         if (this.connectResolver) this.connectResolver()
@@ -43,7 +49,9 @@ class Device extends EventEmitter {
         this.emit('connect')
     }
     onDisconnect(onError) {
-        if (onError) {
+        // Automatically reconnect if there was an error or the server closed the connection for some reason
+        // (I.E. the user did not close the connection manually)
+        if (onError || !this.userClose) {
             this.emit('reconnect', `Connection at at ${this.ip}:${this.port} lost! Attempting reconnect in ${this.reconnectInterval} seconds...`)
             setTimeout(this.connect.bind(this, true), this.reconnectInterval * SECOND)
         }
