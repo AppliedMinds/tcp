@@ -42,7 +42,7 @@ class Device extends EventEmitter {
     async close() {
         // Signal the user intentionally closed the socket
         this.userClose = true
-        if (this.socket) {
+        if (this.socket && !this.socket.destroyed) {
             await new Promise(res => this.socket.end(res))
         }
         this.connected = false
