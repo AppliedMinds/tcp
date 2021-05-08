@@ -24,7 +24,7 @@ beforeEach(done => {
             }
         })
     })
-    device = new Device({ ip: '127.0.0.1', port: 3003 })
+    device = new Device({ host: '127.0.0.1', port: 3003 })
     server.listen(3003, done)
 })
 
@@ -39,11 +39,24 @@ describe('Device Setup', () => {
         await device.connect()
         expect(device.connected).toBe(true)
     })
-    it('should set the ip', () => {
+    it('should set the host', () => {
+        expect(device.host).toBe('127.0.0.1')
+    })
+    it('should allow host to be retrieved via the (deprecated) ip attribute', () => {
+        const deprecation = jest.spyOn(console, 'warn').mockImplementation(() => {})
         expect(device.ip).toBe('127.0.0.1')
+        expect(deprecation).toHaveBeenCalledWith(expect.stringMatching(/deprecated/))
+        deprecation.mockRestore()
     })
     it('should set the default port', () => {
         expect(device.port).toBe(3003)
+    })
+    it('should accept the (deprecated) IP parameter instead of host', () => {
+        const deprecation = jest.spyOn(console, 'warn').mockImplementation(() => {})
+        const testDevice = new Device({ ip: '127.0.0.10', port: 3004 })
+        expect(deprecation).toHaveBeenCalledWith(expect.stringMatching(/deprecated/))
+        expect(testDevice.host).toBe('127.0.0.10')
+        deprecation.mockRestore()
     })
 })
 
@@ -108,7 +121,7 @@ describe('Device Reconnect', () => {
         device.on('connect', connectEvent)
         // Attempt connection
         const connect = jest.spyOn(device, 'connect')
-        device.ip = '10.255.255.1'
+        device.host = '10.255.255.1'
         // 50ms timout, 5ms reconnect
         device.responseTimeout = 50
         device.reconnectInterval = 0.005
@@ -119,8 +132,8 @@ describe('Device Reconnect', () => {
         expect(error.mock.calls.length).toBeGreaterThanOrEqual(1)
         expect(error).toHaveBeenCalledWith(expect.objectContaining({ message: 'Timeout connecting to 10.255.255.1:3003' }))
         expect(connectEvent).toHaveBeenCalledTimes(0)
-        // Set to a valid IP and check the original promise still resolves
-        device.ip = '127.0.0.1'
+        // Set to a valid host and check the original promise still resolves
+        device.host = '127.0.0.1'
         await expect(promise).resolves.toBe(undefined)
     })
     it('should try to reconnect after disconnecting on error', async () => {

@@ -17,7 +17,7 @@ Requirements
 
  * MacOS: `brew install node` using [Homebrew](http://brew.sh/)
  * Linux: `apt install nodejs` ([see Ubuntu/Debian specific instructions](https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions)) or `pacman -S nodejs` (Arch Linux)
- * Windows: [Install](https://nodejs.org/en/download/)
+ * Windows: `choco install nodejs`
 
 Installation
 ------------
@@ -45,8 +45,8 @@ For example, imagine a device that uses a single byte 0x01, 0x02 or 0x03 to send
 const TCPDevice = require('@ami/tcp').Device
 
 class Motor {
-    constructor(ip) {
-        this.device = new TCPDevice({ ip, port: 28836 })
+    constructor(host) {
+        this.device = new TCPDevice({ host, port: 28836 })
         this.device.on('data', this.onReceive.bind(this))
         this.device.connect()
         this.state = 'stopped'
@@ -70,11 +70,11 @@ class Motor {
 API Methods
 -----------
 
-### `new Device({ ip : String, port : Number, reconnectInterval? : Number, responseTimeout? : Number })`
+### `new Device({ host : String, port : Number, reconnectInterval? : Number, responseTimeout? : Number })`
 
 Constructor
 
-  * `ip`: IP address of device/service
+  * `host`: Hostname or IP address of device/service
   * `port`: Numeric TCP port of device/service
   * `reconnectInterval`: Seconds until reconnect attempt after disconnect or error (default: `3`)
   * `responseTimeout`: Seconds until a call to `request()` will automatically time out (default: `3`)

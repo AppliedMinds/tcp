@@ -5,9 +5,13 @@ const DEFAULT_RECONNECT_INTERVAL = 3 // seconds
 const SECOND = 1000 // ms
 
 class Device extends EventEmitter {
-    constructor({ ip, port, reconnectInterval = DEFAULT_RECONNECT_INTERVAL, responseTimeout = DEFAULT_RECONNECT_INTERVAL }) {
+    constructor({ host, ip, port, reconnectInterval = DEFAULT_RECONNECT_INTERVAL, responseTimeout = DEFAULT_RECONNECT_INTERVAL }) {
         super()
-        this.ip = ip
+        if (ip) {
+            console.warn('Device.ip has been deprecated. Please use Device.host instead.')
+            if (!host) host = ip
+        }
+        this.host = host
         this.port = port
         this.reconnectInterval = reconnectInterval
         this.responseTimeout = responseTimeout * SECOND
@@ -32,7 +36,7 @@ class Device extends EventEmitter {
             // so the client can await the `connect()` call correctly
             // in case of reconnects
             if (!reconnect) this.connectResolver = resolve
-            this.socket.connect(this.port, this.ip, this.onConnect.bind(this))
+            this.socket.connect(this.port, this.host, this.onConnect.bind(this))
         })
     }
     async close() {
@@ -43,6 +47,10 @@ class Device extends EventEmitter {
         }
         this.connected = false
     }
+    get ip() {
+        console.warn('Device.ip has been deprecated. Please use Device.host instead.')
+        return this.host
+    }
     onConnect() {
         if (this.connectResolver) this.connectResolver()
         this.connected = true
@@ -52,14 +60,14 @@ class Device extends EventEmitter {
         // Automatically reconnect if there was an error or the server closed the connection for some reason
         // (I.E. the user did not close the connection manually)
         if (onError || !this.userClose) {
-            this.emit('reconnect', `Connection at at ${this.ip}:${this.port} lost! Attempting reconnect in ${this.reconnectInterval} seconds...`)
+            this.emit('reconnect', `Connection at at ${this.host}:${this.port} lost! Attempting reconnect in ${this.reconnectInterval} seconds...`)
             setTimeout(this.connect.bind(this, true), this.reconnectInterval * SECOND)
         }
         this.emit('close')
     }
     onTimeout() {
         this.emit('timeout')
-        this.socket.destroy(new Error(`Timeout connecting to ${this.ip}:${this.port}`))
+        this.socket.destroy(new Error(`Timeout connecting to ${this.host}:${this.port}`))
     }
     // Make a request and wait for a response
     request(command, expectedResponse, errResponse) {
