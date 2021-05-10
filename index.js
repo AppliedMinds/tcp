@@ -5,7 +5,7 @@ const DEFAULT_RECONNECT_INTERVAL = 3 // seconds
 const SECOND = 1000 // ms
 
 class Device extends EventEmitter {
-    constructor({ host, ip, port, reconnectInterval = DEFAULT_RECONNECT_INTERVAL, responseTimeout = DEFAULT_RECONNECT_INTERVAL }) {
+    constructor({ host, ip, port, parser, reconnectInterval = DEFAULT_RECONNECT_INTERVAL, responseTimeout = DEFAULT_RECONNECT_INTERVAL }) {
         super()
         if (ip) {
             console.warn('Device.ip has been deprecated. Please use Device.host instead.')
@@ -17,16 +17,22 @@ class Device extends EventEmitter {
         this.responseTimeout = responseTimeout * SECOND
         this.connected = false
         this.userClose = false
+        this.parser = parser
     }
     connect(reconnect = false) {
         this.userClose = false
         this.socket = new net.Socket()
-        this.socket.on('data', this.emit.bind(this, 'data'))
         this.socket.on('close', this.onDisconnect.bind(this))
         this.socket.on('error', this.emit.bind(this, 'error'))
         this.socket.setKeepAlive(true)
         // Send immediately when write() is called, no buffering
         this.socket.setNoDelay()
+
+        // Handle data piping
+        this.dataPipe = this.socket
+        if (this.parser) this.dataPipe = this.dataPipe.pipe(this.parser)
+        this.dataPipe.on('data', this.emit.bind(this, 'data'))
+
         return new Promise(resolve => {
             const connectTimeout = setTimeout(this.onTimeout.bind(this), this.responseTimeout)
             this.socket.on('connect', () => {
@@ -78,15 +84,15 @@ class Device extends EventEmitter {
                 const failure = errResponse ? msg.match(errResponse) : false
                 if (!success && !failure) return
                 clearTimeout(timeout)
-                this.socket.off('data', receiver)
+                this.dataPipe.off('data', receiver)
                 if (failure) rej(failure)
                 else res(success)
             }
             const timeout = setTimeout(() => {
-                this.socket.off('data', receiver)
+                this.dataPipe.off('data', receiver)
                 rej(new Error('Timeout while waiting for response!'))
             }, this.responseTimeout)
-            this.socket.on('data', receiver)
+            this.dataPipe.on('data', receiver)
         })
         this.send(command)
         return receipt

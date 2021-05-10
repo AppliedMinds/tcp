@@ -70,12 +70,13 @@ class Motor {
 API Methods
 -----------
 
-### `new Device({ host : String, port : Number, reconnectInterval? : Number, responseTimeout? : Number })`
+### `new Device({ host : String, port : Number, parser : Transform, reconnectInterval? : Number, responseTimeout? : Number })`
 
 Constructor
 
   * `host`: Hostname or IP address of device/service
   * `port`: Numeric TCP port of device/service
+  * `parser`: A data parser that extends [Stream.Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform) (default: no parsing)
   * `reconnectInterval`: Seconds until reconnect attempt after disconnect or error (default: `3`)
   * `responseTimeout`: Seconds until a call to `request()` will automatically time out (default: `3`)
   
