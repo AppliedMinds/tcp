@@ -77,7 +77,7 @@ Constructor
   * `host`: Hostname or IP address of device/service
   * `port`: Numeric TCP port of device/service
   * `parser`: A data parser that extends [Stream.Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform) (default: no parsing)
-  * `reconnectInterval`: Seconds until reconnect attempt after disconnect or error (default: `3`)
+  * `reconnectInterval`: Seconds until reconnect attempt after disconnect or error, use `0` for no reconnects (default: `3`)
   * `responseTimeout`: Seconds until a call to `request()` will automatically time out (default: `3`)
   
 ### `Device.connect()` : `<Promise>`
