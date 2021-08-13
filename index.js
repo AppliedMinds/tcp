@@ -19,7 +19,9 @@ class Device extends EventEmitter {
         this.userClose = false
         this.parser = parser
     }
-    connect(reconnect = false) {
+    async connect(reconnect = false) {
+        // Don't re-run if already connected
+        if (this.connected) return Promise.resolve()
         this.userClose = false
         this.socket = new net.Socket()
         this.socket.on('close', this.onDisconnect.bind(this))
@@ -33,9 +35,9 @@ class Device extends EventEmitter {
         if (this.parser) this.dataPipe = this.dataPipe.pipe(this.parser)
         this.dataPipe.on('data', this.emit.bind(this, 'data'))
 
-        return new Promise(resolve => {
+        await new Promise(resolve => {
             const connectTimeout = setTimeout(this.onTimeout.bind(this), this.responseTimeout)
-            this.socket.on('connect', () => {
+            this.socket.once('connect', () => {
                 clearTimeout(connectTimeout)
             })
             // Update our resolver if this is an initial connection
@@ -48,7 +50,7 @@ class Device extends EventEmitter {
     async close() {
         // Signal the user intentionally closed the socket
         this.userClose = true
-        if (this.socket && !this.socket.destroyed) {
+        if (this.socket) {
             await new Promise(res => this.socket.end(res))
         }
         this.connected = false
@@ -65,9 +67,10 @@ class Device extends EventEmitter {
     onDisconnect(onError) {
         // Automatically reconnect if there was an error or the server closed the connection for some reason
         // (I.E. the user did not close the connection manually)
-        if (onError || !this.userClose) {
+        if (this.reconnectInterval > 0 && (onError || !this.userClose)) {
             this.emit('reconnect', `Connection at at ${this.host}:${this.port} lost! Attempting reconnect in ${this.reconnectInterval} seconds...`)
-            setTimeout(this.connect.bind(this, true), this.reconnectInterval * SECOND)
+            clearTimeout(this._reconnectTimer)
+            this._reconnectTimer = setTimeout(this.connect.bind(this, true), this.reconnectInterval * SECOND)
         }
         this.emit('close')
     }
