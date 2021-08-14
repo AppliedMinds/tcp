@@ -18,6 +18,7 @@ class Device extends EventEmitter {
         this.connected = false
         this.userClose = false
         this.parser = parser
+        this._dataEmitter = this.emit.bind(this, 'data')
     }
     async connect(reconnect = false) {
         // Don't re-run if already connected
@@ -33,7 +34,7 @@ class Device extends EventEmitter {
         // Handle data piping
         this.dataPipe = this.socket
         if (this.parser) this.dataPipe = this.dataPipe.pipe(this.parser)
-        this.dataPipe.on('data', this.emit.bind(this, 'data'))
+        this.dataPipe.on('data', this._dataEmitter)
 
         await new Promise(resolve => {
             // Make sure previous connect timers have been cleared
@@ -52,10 +53,11 @@ class Device extends EventEmitter {
     async close() {
         // Signal the user intentionally closed the socket
         this.userClose = true
+        // Prevent additional reconnects
+        clearTimeout(this._reconnectTimer)
         if (this.socket) {
             await new Promise(res => this.socket.end(res))
         }
-        this.connected = false
     }
     get ip() {
         console.warn('Device.ip has been deprecated. Please use Device.host instead.')
@@ -68,6 +70,8 @@ class Device extends EventEmitter {
         this.emit('connect')
     }
     onDisconnect(onError) {
+        this.connected = false
+        this.dataPipe.off('data', this._dataEmitter)
         clearTimeout(this._connectTimeout)
         // Automatically reconnect if we didn't close the connection manually
         if (this.reconnectInterval > 0 && !this.userClose) {

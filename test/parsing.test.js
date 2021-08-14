@@ -1,7 +1,7 @@
-import { Transform } from 'stream'
 import net from 'net'
+import { Transform } from 'stream'
+import { setTimeout } from 'timers/promises'
 import { Device } from '..'
-const delay = ms => new Promise(res => setTimeout(res, ms))
 
 class ByteLengthParser extends Transform {
     constructor({ length = 4, ...options } = {}) {
@@ -40,16 +40,36 @@ describe('Data Parsing', () => {
         await device.connect()
 
         // Wait for the server to accept the connection
-        await delay(10)
+        await setTimeout(10)
 
         const testData = Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08])
         openSocket.write(testData)
 
         // Wait for the client to receive the data
-        await delay(10)
+        await setTimeout(10)
 
         expect(receive).toHaveBeenCalledWith(testData.slice(0, 4))
         expect(receive).toHaveBeenCalledWith(testData.slice(4))
+
+        await device.close()
+        await new Promise(res => server.close(res))
+    })
+    it('should not duplicate data events on reconnect', async() => {
+        // Set up test server
+        const server = net.createServer()
+        await new Promise(res => server.listen(3004, res))
+
+        const device = new Device({ host: '127.0.0.1', port: 3004, parser: new ByteLengthParser() })
+        device.on('error', () => {})
+        device.reconnectInterval = 0.005
+        await device.connect()
+        await setTimeout(50)
+        device.socket.destroy(new Error('A Serious Failure'))
+        await setTimeout(50)
+        device.socket.destroy(new Error('Another Serious Failure'))
+        await setTimeout(50) // Device attempts reconnect after 5ms
+
+        expect(device.dataPipe.listenerCount('data')).toBe(1)
 
         await device.close()
         await new Promise(res => server.close(res))
