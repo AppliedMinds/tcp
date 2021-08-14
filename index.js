@@ -36,9 +36,11 @@ class Device extends EventEmitter {
         this.dataPipe.on('data', this.emit.bind(this, 'data'))
 
         await new Promise(resolve => {
-            const connectTimeout = setTimeout(this.onTimeout.bind(this), this.responseTimeout)
-            this.socket.once('connect', () => {
-                clearTimeout(connectTimeout)
+            // Make sure previous connect timers have been cleared
+            clearTimeout(this._connectTimeout)
+            this._connectTimeout = setTimeout(this.onTimeout.bind(this, this.host, this.port), this.responseTimeout)
+            this.socket.on('connect', () => {
+                clearTimeout(this._connectTimeout)
             })
             // Update our resolver if this is an initial connection
             // so the client can await the `connect()` call correctly
@@ -61,22 +63,23 @@ class Device extends EventEmitter {
     }
     onConnect() {
         if (this.connectResolver) this.connectResolver()
+        clearTimeout(this._reconnectTimer)
         this.connected = true
         this.emit('connect')
     }
     onDisconnect(onError) {
-        // Automatically reconnect if there was an error or the server closed the connection for some reason
-        // (I.E. the user did not close the connection manually)
-        if (this.reconnectInterval > 0 && (onError || !this.userClose)) {
+        clearTimeout(this._connectTimeout)
+        // Automatically reconnect if we didn't close the connection manually
+        if (this.reconnectInterval > 0 && !this.userClose) {
             this.emit('reconnect', `Connection at at ${this.host}:${this.port} lost! Attempting reconnect in ${this.reconnectInterval} seconds...`)
             clearTimeout(this._reconnectTimer)
             this._reconnectTimer = setTimeout(this.connect.bind(this, true), this.reconnectInterval * SECOND)
         }
         this.emit('close')
     }
-    onTimeout() {
+    onTimeout(host, port) {
         this.emit('timeout')
-        this.socket.destroy(new Error(`Timeout connecting to ${this.host}:${this.port}`))
+        this.socket.destroy(new Error(`Timeout connecting to ${host}:${port}`))
     }
     // Make a request and wait for a response
     request(command, expectedResponse, errResponse) {

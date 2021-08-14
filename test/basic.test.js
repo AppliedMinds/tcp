@@ -129,19 +129,21 @@ describe('Normal Device Operation', () => {
             device.on('connect', connectEvent)
             // Attempt connection
             const connect = jest.spyOn(device, 'connect')
-            device.host = '10.255.255.1'
-            // 50ms timout, 5ms reconnect
-            device.responseTimeout = 50
-            device.reconnectInterval = 0.005
+            device.host = 'example.com'
+            device.port = 81
+            // 50ms timeout, 5ms reconnect
+            device.responseTimeout = 100
+            device.reconnectInterval = 0.05
             const promise = device.connect()
-            // Wait at least 55ms to ensure we catch a reconnect/timeout
-            await setTimeout(150)
+            // Wait at least 150ms to ensure we catch a timeout + reconnect
+            await setTimeout(200)
             expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
             expect(error.mock.calls.length).toBeGreaterThanOrEqual(1)
-            expect(error).toHaveBeenCalledWith(expect.objectContaining({ message: 'Timeout connecting to 10.255.255.1:3003' }))
+            expect(error).toHaveBeenCalledWith(expect.objectContaining({ message: 'Timeout connecting to example.com:81' }))
             expect(connectEvent).toHaveBeenCalledTimes(0)
             // Set to a valid host and check the original promise still resolves
             device.host = '127.0.0.1'
+            device.port = 3003
             await expect(promise).resolves.toBe(undefined)
         })
         it('should try to reconnect after disconnecting on error', async () => {
