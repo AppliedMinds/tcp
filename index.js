@@ -71,7 +71,8 @@ class Device extends EventEmitter {
     }
     onDisconnect(onError) {
         this.connected = false
-        this.dataPipe.off('data', this._dataEmitter)
+        this.dataPipe.unpipe()
+        this.dataPipe.removeAllListeners()
         clearTimeout(this._connectTimeout)
         // Automatically reconnect if we didn't close the connection manually
         if (this.reconnectInterval > 0 && !this.userClose) {

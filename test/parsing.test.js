@@ -70,6 +70,7 @@ describe('Data Parsing', () => {
         await setTimeout(50) // Device attempts reconnect after 5ms
 
         expect(device.dataPipe.listenerCount('data')).toBe(1)
+        expect(device.dataPipe.listenerCount('unpipe')).toBe(1)
 
         await device.close()
         await new Promise(res => server.close(res))
