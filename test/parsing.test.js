@@ -56,7 +56,10 @@ describe('Data Parsing', () => {
     })
     it('should not duplicate data events on reconnect', async() => {
         // Set up test server
-        const server = net.createServer()
+        let openSocket
+        const server = net.createServer(socket => {
+            openSocket = socket
+        })
         await new Promise(res => server.listen(3004, res))
 
         const device = new Device({ host: '127.0.0.1', port: 3004, parser: new ByteLengthParser() })
@@ -64,13 +67,15 @@ describe('Data Parsing', () => {
         device.reconnectInterval = 0.005
         await device.connect()
         await setTimeout(50)
-        device.socket.destroy(new Error('A Serious Failure'))
+        openSocket.end()
         await setTimeout(50)
-        device.socket.destroy(new Error('Another Serious Failure'))
+        openSocket.end()
         await setTimeout(50) // Device attempts reconnect after 5ms
 
         expect(device.dataPipe.listenerCount('data')).toBe(1)
         expect(device.dataPipe.listenerCount('unpipe')).toBe(1)
+        // Make sure the data pipe is still open
+        expect(device.dataPipe._writableState.ended).toBe(false)
 
         await device.close()
         await new Promise(res => server.close(res))

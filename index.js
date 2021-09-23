@@ -33,7 +33,7 @@ class Device extends EventEmitter {
 
         // Handle data piping
         this.dataPipe = this.socket
-        if (this.parser) this.dataPipe = this.dataPipe.pipe(this.parser)
+        if (this.parser) this.dataPipe = this.dataPipe.pipe(this.parser, { end: false })
         this.dataPipe.on('data', this._dataEmitter)
 
         await new Promise(resolve => {
