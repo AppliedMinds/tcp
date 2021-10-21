@@ -2,10 +2,11 @@ const net = require('net')
 const EventEmitter = require('events')
 
 const DEFAULT_RECONNECT_INTERVAL = 3 // seconds
+const DEFAULT_TIMEOUT = 5 // seconds
 const SECOND = 1000 // ms
 
 class Device extends EventEmitter {
-    constructor({ host, ip, port, parser, reconnectInterval = DEFAULT_RECONNECT_INTERVAL, responseTimeout = DEFAULT_RECONNECT_INTERVAL }) {
+    constructor({ host, ip, port, parser, reconnectInterval = DEFAULT_RECONNECT_INTERVAL, responseTimeout = DEFAULT_TIMEOUT }) {
         super()
         if (ip) {
             console.warn('Device.ip has been deprecated. Please use Device.host instead.')
@@ -27,7 +28,10 @@ class Device extends EventEmitter {
         this.socket = new net.Socket()
         this.socket.on('close', this.onDisconnect.bind(this))
         this.socket.on('error', this.emit.bind(this, 'error'))
+        this.socket.on('timeout', this.onTimeout.bind(this))
+        // Keep connection alive
         this.socket.setKeepAlive(true)
+        this.socket.setTimeout(this.responseTimeout)
         // Send immediately when write() is called, no buffering
         this.socket.setNoDelay()
 
