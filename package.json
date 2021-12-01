@@ -37,13 +37,23 @@
     "jest": "^27.4.3",
     "jest-circus": "^27.4.2"
   },
-  "author": "Ivo Janssen <ijanssen@appliedminds.com>",
+  "author": "Ivo Janssen <ivo@appliedminds.com>",
   "contributors": [],
-  "license": "UNLICENSED",
+  "license": "MIT",
   "eslintConfig": {
     "extends": [
       "@appliedminds",
       "plugin:jest/recommended"
     ]
-  }
+  },
+  "keywords": [
+    "tcp",
+    "networking",
+    "client",
+    "net",
+    "iot",
+    "socket",
+    "ami",
+    "appliedminds"
+  ]
 }
