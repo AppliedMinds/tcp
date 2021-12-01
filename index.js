@@ -73,7 +73,7 @@ class Device extends EventEmitter {
         this.connected = true
         this.emit('connect')
     }
-    onDisconnect(onError) {
+    onDisconnect() {
         this.connected = false
         this.dataPipe.unpipe()
         this.dataPipe.removeAllListeners()
