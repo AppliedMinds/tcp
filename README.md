@@ -1,37 +1,33 @@
-AMI TCP Device
-==============
+TCP
+===
 
-Base class for creating TCP-based service integrations with Node.js.
+Easily integrate with TCP-based services and devices using Node.js.
 
 Features:
 
  * Easy event management
  * Automatic connection healing
- * Async send methods
+ * Asynchronous send methods
  * RegEx-based request/response handling
+
+##### Contents
+
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Examples](#usage-examples)
+- [API Docs](#api-docs)
+- [License](#license)
 
 Requirements
 ------------
 
-### Node.js 12+
-
- * MacOS: `brew install node` using [Homebrew](http://brew.sh/)
- * Linux: `apt install nodejs` ([see Ubuntu/Debian specific instructions](https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions)) or `pacman -S nodejs` (Arch Linux)
- * Windows: `choco install nodejs`
+ * Node 12+
 
 Installation
 ------------
 
-Ensure the local AMI registry is being used:
-
 ```shell
-npm set -g @ami:registry http://npm:4873
-```
-
-Then simply install:
-
-```shell
-npm install @ami/tcp
+npm install @appliedminds/tcp
 ```
 
 Usage / Examples
@@ -42,7 +38,7 @@ Create a new `Device` for any TCP-based service.
 For example, imagine a device that uses a single byte 0x01, 0x02 or 0x03 to send forward, back or stop commands, respectively:
 
 ```javascript
-const TCPDevice = require('@ami/tcp').Device
+import { Device as TCPDevice } from '@appliedminds/tcp'
 
 class Motor {
     constructor(host) {
@@ -58,7 +54,7 @@ class Motor {
         this.device.send(Buffer.from([0x01]))
     }
     onReceive(data) {
-        // Set our state when the device relays its state
+        // Cache state when the device relays its state
         this.state = data
     }
     stop() {
@@ -67,8 +63,8 @@ class Motor {
 }
 ```
 
-API Methods
------------
+API Docs
+--------
 
 ### `new Device({ host : String, port : Number, parser : Transform, reconnectInterval? : Number, responseTimeout? : Number })`
 
@@ -127,11 +123,15 @@ Emitted when a connection or message times out (also emits `error`, but allows f
 
 ### `reconnect`
 
-Emitted with a reconnection message when a reconnection is attempted.
+Emitted when a reconnection is attempted.
 
-Development & Tests
+Contributing & Tests
 -------------------
 
-1. Clone repo: `git clone <repo_url>`
-2. Install dependencies: `npm install`
-3. Run test suite: `npm test`
+1. Install development dependencies: `npm install`
+2. Run tests: `npm test`
+
+License
+-------
+
+MIT
