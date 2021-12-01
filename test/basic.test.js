@@ -1,6 +1,10 @@
 import net from 'net'
-import { setTimeout } from 'timers/promises'
 import { Device } from '..'
+
+// Note for future maintenance: can be replaced with
+// `import { setTimeout: delay } from 'timers/promises'`
+// (Node 15+ support only)
+const delay = ms => new Promise(res => setTimeout(res, ms))
 
 let server, device, openSocket
 
@@ -18,7 +22,7 @@ describe('Normal Device Operation', () => {
                     // Write an unexpected response first
                     socket.write('other-data')
                     // Then the expected response
-                    await setTimeout(10)
+                    await delay(10)
                     socket.write('example-response')
                 }
                 else if (msg === 'failed-request') {
@@ -136,7 +140,7 @@ describe('Normal Device Operation', () => {
             device.reconnectInterval = 0.05
             const promise = device.connect()
             // Wait at least 150ms to ensure we catch a timeout + reconnect
-            await setTimeout(200)
+            await delay(200)
             expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
             expect(error.mock.calls.length).toBeGreaterThanOrEqual(1)
             expect(error).toHaveBeenCalledWith(expect.objectContaining({ message: 'Timeout connecting to example.com:81' }))
@@ -156,7 +160,7 @@ describe('Normal Device Operation', () => {
             device.reconnectInterval = 0.005
             await device.connect()
             device.socket.destroy(new Error('A Serious Failure'))
-            await setTimeout(50) // Device attempts reconnect after 5ms
+            await delay(50) // Device attempts reconnect after 5ms
             expect(connect).toHaveBeenCalledTimes(2)
             expect(close).toHaveBeenCalledTimes(1)
         })
@@ -165,12 +169,12 @@ describe('Normal Device Operation', () => {
             device.reconnectInterval = 0.005
             await device.connect()
             // Wait a split second to ensure the server receives the new connection
-            await setTimeout(50)
+            await delay(50)
             // Pretend the server closes the connection
             await new Promise(res => {
                 openSocket.end(res)
             })
-            await setTimeout(100)
+            await delay(100)
             expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
         })
     })

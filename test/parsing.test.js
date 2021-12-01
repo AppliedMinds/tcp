@@ -1,7 +1,11 @@
 import net from 'net'
 import { Transform } from 'stream'
-import { setTimeout } from 'timers/promises'
 import { Device } from '..'
+
+// Note for future maintenance: can be replaced with
+// `import { setTimeout: delay } from 'timers/promises'`
+// (Node 15+ support only)
+const delay = ms => new Promise(res => setTimeout(res, ms))
 
 class ByteLengthParser extends Transform {
     constructor({ length = 4, ...options } = {}) {
@@ -40,13 +44,13 @@ describe('Data Parsing', () => {
         await device.connect()
 
         // Wait for the server to accept the connection
-        await setTimeout(10)
+        await delay(10)
 
         const testData = Buffer.from([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08])
         openSocket.write(testData)
 
         // Wait for the client to receive the data
-        await setTimeout(10)
+        await delay(10)
 
         expect(receive).toHaveBeenCalledWith(testData.slice(0, 4))
         expect(receive).toHaveBeenCalledWith(testData.slice(4))
@@ -66,11 +70,11 @@ describe('Data Parsing', () => {
         device.on('error', () => {})
         device.reconnectInterval = 0.005
         await device.connect()
-        await setTimeout(50)
+        await delay(50)
         openSocket.end()
-        await setTimeout(50)
+        await delay(50)
         openSocket.end()
-        await setTimeout(50) // Device attempts reconnect after 5ms
+        await delay(50) // Device attempts reconnect after 5ms
 
         expect(device.dataPipe.listenerCount('data')).toBe(1)
         expect(device.dataPipe.listenerCount('unpipe')).toBe(1)
