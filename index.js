@@ -28,7 +28,7 @@ class Device extends EventEmitter {
         this.socket = new net.Socket()
         this.socket.on('close', this.onDisconnect.bind(this))
         this.socket.on('error', this.emit.bind(this, 'error'))
-        this.socket.on('timeout', this.onTimeout.bind(this))
+        this.socket.on('timeout', this.onTimeout.bind(this, this.host, this.port))
         // Keep connection alive
         this.socket.setKeepAlive(true)
         this.socket.setTimeout(this.responseTimeout)
