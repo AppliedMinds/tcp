@@ -101,6 +101,10 @@ Emitted when a connection or message times out (also emits `error`, but allows f
 ### Event: `'reconnect'`
 
 Emitted when a reconnection is attempted.
+
+### `device.close()` : `<Promise>`
+
+Manually close connection. Resolves once the connection has been closed.
   
 ### `device.connect()` : `<Promise>`
 
