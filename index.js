@@ -61,6 +61,7 @@ class Device extends EventEmitter {
         clearTimeout(this._reconnectTimer)
         if (this.socket) {
             await new Promise(res => this.socket.end(res))
+            this.socket.destroy()
         }
     }
     get ip() {
