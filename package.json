@@ -18,6 +18,9 @@
     ],
     "testRunner": "jest-circus/runner"
   },
+  "files": [
+    "index.js"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/appliedminds/tcp"
