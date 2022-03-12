@@ -47,6 +47,13 @@ describe('Normal Device Operation', () => {
             await device.connect()
             expect(device.connected).toBe(true)
         })
+        it('should not connect again if still connected', async () => {
+            const connectEvent = jest.fn()
+            device.on('connect', connectEvent)
+            await device.connect()
+            await device.connect()
+            expect(connectEvent).toHaveBeenCalledTimes(1)
+        })
         it('should set the host', () => {
             expect(device.host).toBe('127.0.0.1')
         })
