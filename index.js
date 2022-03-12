@@ -70,6 +70,7 @@ class Device extends EventEmitter {
     }
     onConnect() {
         if (this.connectResolver) this.connectResolver()
+        this.connectResolver = null
         clearTimeout(this._reconnectTimer)
         this.connected = true
         this.emit('connect')
