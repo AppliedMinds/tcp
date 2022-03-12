@@ -17,15 +17,13 @@ describe('Normal Device Operation', () => {
                 const msg = data.toString()
                 if (msg === 'example-request') {
                     socket.write('example-response')
-                }
-                else if (msg === 'other-request') {
+                } else if (msg === 'other-request') {
                     // Write an unexpected response first
                     socket.write('other-data')
                     // Then the expected response
                     await delay(10)
                     socket.write('example-response')
-                }
-                else if (msg === 'failed-request') {
+                } else if (msg === 'failed-request') {
                     socket.write('failure!')
                 }
             })
