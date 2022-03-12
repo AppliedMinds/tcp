@@ -66,6 +66,12 @@ describe('Normal Device Operation', () => {
             expect(testDevice.host).toBe('127.0.0.10')
             deprecation.mockRestore()
         })
+        it('should prioritize host over ip', () => {
+            const deprecation = jest.spyOn(console, 'warn').mockImplementation(() => {})
+            const testDevice = new Device({ ip: '127.0.0.10', host: 'example.com', port: 3004 })
+            expect(deprecation).toHaveBeenCalledWith(expect.stringMatching(/deprecated/))
+            expect(testDevice.host).toBe('example.com')
+        })
     })
 
     describe('Device Listeners', () => {
