@@ -175,6 +175,29 @@ describe('Normal Device Operation', () => {
             await delay(100)
             expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
         })
+        it('should try to reconnect if a connection timeout occurs', async() => {
+            // Watch error handler
+            const error = jest.fn()
+            device.on('error', error)
+            // Watch connection
+            const connectEvent = jest.fn()
+            device.on('connect', connectEvent)
+            // Watch timeout handler
+            const timeout = jest.fn()
+            device.on('timeout', timeout)
+            // Attempt connection
+            const connect = jest.spyOn(device, 'connect')
+            device.reconnectInterval = 0.005
+            await device.connect()
+            // Trigger a timeout
+            device.socket.emit('timeout')
+            // Wait at least 150ms to ensure we catch a timeout + reconnect
+            await delay(200)
+            expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
+            expect(error.mock.calls.length).toBeGreaterThanOrEqual(1)
+            expect(error).toHaveBeenCalledWith(expect.objectContaining({ message: 'Timeout connecting to 127.0.0.1:3003' }))
+            expect(timeout).toHaveBeenCalled()
+        })
     })
 
     describe('Device Errors', () => {
