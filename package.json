@@ -1,6 +1,6 @@
 {
   "name": "@appliedminds/tcp",
-  "version": "2.5.2",
+  "version": "2.5.3",
   "description": "Service wrapper to easily integrate TCP services",
   "main": "index.js",
   "module": "index.js",
