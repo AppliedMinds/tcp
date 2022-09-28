@@ -1,4 +1,4 @@
-image: node:12
+image: node:14
 
 # Cache in-between jobs
 cache:
