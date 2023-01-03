@@ -6,7 +6,7 @@
   "type": "module",
   "module": "index.js",
   "engines": {
-    "node": ">=12.20"
+    "node": ">=14"
   },
   "scripts": {
     "lint": "eslint .",
