@@ -7,7 +7,7 @@ import { Device } from '..'
 // (Node 15+ support only)
 const delay = ms => new Promise(res => setTimeout(res, ms))
 
-let server, device, openSocket
+let server, device, openSocket, port
 
 describe('Normal Device Operation', () => {
     beforeEach(async() => {
@@ -29,10 +29,11 @@ describe('Normal Device Operation', () => {
                 }
             })
         })
-        device = new Device({ host: '127.0.0.1', port: 3003 })
         await new Promise(res => {
-            server.listen(3003, res)
+            server.listen(res)
         })
+        port = server.address().port
+        device = new Device({ host: '127.0.0.1', port })
     })
 
     afterEach(async() => {
@@ -65,7 +66,7 @@ describe('Normal Device Operation', () => {
             deprecation.mockRestore()
         })
         it('should set the default port', () => {
-            expect(device.port).toBe(3003)
+            expect(device.port).toBe(port)
         })
         it('should accept the (deprecated) IP parameter instead of host', () => {
             const deprecation = jest.spyOn(console, 'warn').mockImplementation(() => {})
@@ -159,7 +160,7 @@ describe('Normal Device Operation', () => {
             expect(connectEvent).toHaveBeenCalledTimes(0)
             // Set to a valid host and check the original promise still resolves
             device.host = '127.0.0.1'
-            device.port = 3003
+            device.port = port
             await expect(promise).resolves.toBe(undefined)
         })
         it('should try to reconnect after disconnecting on error', async () => {
@@ -209,7 +210,7 @@ describe('Normal Device Operation', () => {
             await delay(200)
             expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
             expect(error.mock.calls.length).toBeGreaterThanOrEqual(1)
-            expect(error).toHaveBeenCalledWith(expect.objectContaining({ message: 'Timeout connecting to 127.0.0.1:3003' }))
+            expect(error).toHaveBeenCalledWith(expect.objectContaining({ message: `Timeout connecting to 127.0.0.1:${port}` }))
             expect(timeout).toHaveBeenCalled()
         })
     })

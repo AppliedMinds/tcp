@@ -17,7 +17,8 @@
     "coverageReporters": [
       "text"
     ],
-    "testRunner": "jest-circus/runner"
+    "testRunner": "jest-circus/runner",
+    "verbose": true
   },
   "files": [
     "index.js"
