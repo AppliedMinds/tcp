@@ -1,11 +1,11 @@
-const net = require('net')
-const EventEmitter = require('events')
+import net from 'net'
+import EventEmitter from 'events'
 
 const DEFAULT_RECONNECT_INTERVAL = 3 // seconds
 const DEFAULT_TIMEOUT = 5 // seconds
 const SECOND = 1000 // ms
 
-class Device extends EventEmitter {
+export class Device extends EventEmitter {
     constructor({ host, ip, port, parser, reconnectInterval = DEFAULT_RECONNECT_INTERVAL, responseTimeout = DEFAULT_TIMEOUT }) {
         super()
         if (ip) {
@@ -118,5 +118,3 @@ class Device extends EventEmitter {
         return new Promise(res => this.socket.write(command, res))
     }
 }
-
-module.exports = { Device }

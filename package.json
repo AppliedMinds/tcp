@@ -3,13 +3,14 @@
   "version": "3.0.1",
   "description": "Service wrapper to easily integrate TCP services",
   "main": "index.js",
+  "type": "module",
   "module": "index.js",
   "engines": {
     "node": ">=12.20"
   },
   "scripts": {
     "lint": "eslint .",
-    "test": "jest --runInBand"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest --runInBand"
   },
   "jest": {
     "collectCoverage": true,

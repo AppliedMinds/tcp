@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals'
 import net from 'net'
 import { Transform } from 'stream'
 import { Device } from '..'
