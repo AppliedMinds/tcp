@@ -16,7 +16,7 @@ class ByteLengthParser extends Transform {
     }
     _transform(chunk, encoding, cb) {
         let data = Buffer.concat([this.buffer, chunk])
-        while(data.length >= this.limitTo) {
+        while (data.length >= this.limitTo) {
             this.push(data.slice(0, this.limitTo))
             data = data.slice(this.limitTo)
         }

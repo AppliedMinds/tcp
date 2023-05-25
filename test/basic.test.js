@@ -45,11 +45,11 @@ describe('Normal Device Operation', () => {
     })
 
     describe('Device Setup', () => {
-        it('should connect to socket', async () => {
+        it('should connect to socket', async() => {
             await device.connect()
             expect(device.connected).toBe(true)
         })
-        it('should not connect again if still connected', async () => {
+        it('should not connect again if still connected', async() => {
             const connectEvent = jest.fn()
             device.on('connect', connectEvent)
             await device.connect()
@@ -84,14 +84,14 @@ describe('Normal Device Operation', () => {
     })
 
     describe('Device Listeners', () => {
-        it('should receive socket data', async () => {
+        it('should receive socket data', async() => {
             const receive = jest.fn()
             device.on('data', receive)
             await device.connect()
             device.socket.emit('data', 'zzz')
             expect(receive).toHaveBeenCalled()
         })
-        it('should disconnect on socket close', async () => {
+        it('should disconnect on socket close', async() => {
             const disconnect = jest.spyOn(device, 'onDisconnect')
             const listener = jest.fn()
             device.on('close', listener)
@@ -102,7 +102,7 @@ describe('Normal Device Operation', () => {
             expect(disconnect).toHaveBeenCalled()
             expect(listener).toHaveBeenCalled()
         })
-        it('should report socket errors', async () => {
+        it('should report socket errors', async() => {
             const error = jest.fn()
             device.on('error', error)
             await device.connect()
@@ -112,17 +112,17 @@ describe('Normal Device Operation', () => {
     })
 
     describe('Device Requests', () => {
-        it('should make a request and get a response', async () => {
+        it('should make a request and get a response', async() => {
             await device.connect()
             const response = await device.request('example-request', 'example-response')
             expect(response).toEqual(expect.arrayContaining(['example-response']))
         })
-        it('should make a request and process an expected failure', async () => {
+        it('should make a request and process an expected failure', async() => {
             await device.connect()
             const response = device.request('failed-request', 'never', 'failure!')
             await expect(response).rejects.toEqual(expect.arrayContaining(['failure!']))
         })
-        it('should make a request and ignore non-matching responses', async () => {
+        it('should make a request and ignore non-matching responses', async() => {
             await device.connect()
             const response = await device.request('other-request', 'example-response')
             expect(response).toEqual(expect.arrayContaining(['example-response']))
@@ -163,7 +163,7 @@ describe('Normal Device Operation', () => {
             device.port = port
             await expect(promise).resolves.toBe(undefined)
         })
-        it('should try to reconnect after disconnecting on error', async () => {
+        it('should try to reconnect after disconnecting on error', async() => {
             // Track close event
             const close = jest.fn()
             device.on('close', close)
@@ -216,7 +216,7 @@ describe('Normal Device Operation', () => {
     })
 
     describe('Device Errors', () => {
-        it('should emit errors from the socket', async () => {
+        it('should emit errors from the socket', async() => {
             const error = jest.fn()
             device.on('error', error)
             // Skip reconnects, we're not testing that
