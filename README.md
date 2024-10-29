@@ -1,7 +1,7 @@
 TCP
 ===
 
-![tests](https://github.com/appliedminds/tcp/workflows/CI/badge.svg?branch=master)
+![tests](https://github.com/appliedminds/tcp/actions/workflows/main.yml/badge.svg)
 
 Easily integrate with TCP-based services and devices using Node.js.
 
