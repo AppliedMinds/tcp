@@ -1,11 +1,8 @@
-import { jest } from '@jest/globals'
-import net from 'net'
-import { Device } from '..'
-
-// Note for future maintenance: can be replaced with
-// `import { setTimeout: delay } from 'timers/promises'`
-// (Node 15+ support only)
-const delay = ms => new Promise(res => setTimeout(res, ms))
+import assert from 'node:assert/strict'
+import net from 'node:net'
+import { beforeEach, afterEach, describe, it, mock } from 'node:test'
+import { setTimeout as delay } from 'node:timers/promises'
+import { Device } from '../index.js'
 
 let server, device, openSocket, port
 
@@ -47,67 +44,67 @@ describe('Normal Device Operation', () => {
     describe('Device Setup', () => {
         it('should connect to socket', async() => {
             await device.connect()
-            expect(device.connected).toBe(true)
+            assert.equal(device.connected, true)
         })
         it('should not connect again if still connected', async() => {
-            const connectEvent = jest.fn()
+            const connectEvent = mock.fn()
             device.on('connect', connectEvent)
             await device.connect()
             await device.connect()
-            expect(connectEvent).toHaveBeenCalledTimes(1)
+            assert.equal(connectEvent.mock.calls.length, 1)
         })
         it('should set the host', () => {
-            expect(device.host).toBe('127.0.0.1')
+            assert.equal(device.host, '127.0.0.1')
         })
         it('should allow host to be retrieved via the (deprecated) ip attribute', () => {
-            const deprecation = jest.spyOn(console, 'warn').mockImplementation(() => {})
-            expect(device.ip).toBe('127.0.0.1')
-            expect(deprecation).toHaveBeenCalledWith(expect.stringMatching(/deprecated/))
-            deprecation.mockRestore()
+            const deprecation = mock.method(console, 'warn', () => {})
+            assert.equal(device.ip, '127.0.0.1')
+            assert.match(deprecation.mock.calls[0].arguments[0], /deprecated/)
+            deprecation.mock.restore()
         })
         it('should set the default port', () => {
-            expect(device.port).toBe(port)
+            assert.equal(device.port, port)
         })
         it('should accept the (deprecated) IP parameter instead of host', () => {
-            const deprecation = jest.spyOn(console, 'warn').mockImplementation(() => {})
+            const deprecation = mock.method(console, 'warn', () => {})
             const testDevice = new Device({ ip: '127.0.0.10', port: 3004 })
-            expect(deprecation).toHaveBeenCalledWith(expect.stringMatching(/deprecated/))
-            expect(testDevice.host).toBe('127.0.0.10')
-            deprecation.mockRestore()
+            assert.match(deprecation.mock.calls[0].arguments[0], /deprecated/)
+            assert.equal(testDevice.host, '127.0.0.10')
+            deprecation.mock.restore()
         })
         it('should prioritize host over ip', () => {
-            const deprecation = jest.spyOn(console, 'warn').mockImplementation(() => {})
+            const deprecation = mock.method(console, 'warn', () => {})
             const testDevice = new Device({ ip: '127.0.0.10', host: 'example.com', port: 3004 })
-            expect(deprecation).toHaveBeenCalledWith(expect.stringMatching(/deprecated/))
-            expect(testDevice.host).toBe('example.com')
+            assert.match(deprecation.mock.calls[0].arguments[0], /deprecated/)
+            assert.equal(testDevice.host, 'example.com')
         })
     })
 
     describe('Device Listeners', () => {
         it('should receive socket data', async() => {
-            const receive = jest.fn()
+            const receive = mock.fn()
             device.on('data', receive)
             await device.connect()
             device.socket.emit('data', 'zzz')
-            expect(receive).toHaveBeenCalled()
+            assert(receive.mock.calls.length > 0)
         })
         it('should disconnect on socket close', async() => {
-            const disconnect = jest.spyOn(device, 'onDisconnect')
-            const listener = jest.fn()
+            const disconnect = mock.method(device, 'onDisconnect')
+            const listener = mock.fn()
             device.on('close', listener)
             await device.connect()
             // Skip reconnects, we're not testing that
             device.reconnectInterval = 0
             device.socket.emit('close')
-            expect(disconnect).toHaveBeenCalled()
-            expect(listener).toHaveBeenCalled()
+            assert(disconnect.mock.calls.length > 0)
+            assert(listener.mock.calls.length > 0)
         })
         it('should report socket errors', async() => {
-            const error = jest.fn()
+            const error = mock.fn()
             device.on('error', error)
             await device.connect()
             device.socket.emit('error', 'testing')
-            expect(error).toHaveBeenCalled()
+            assert(error.mock.calls.length > 0)
         })
     })
 
@@ -115,23 +112,23 @@ describe('Normal Device Operation', () => {
         it('should make a request and get a response', async() => {
             await device.connect()
             const response = await device.request('example-request', 'example-response')
-            expect(response).toEqual(expect.arrayContaining(['example-response']))
+            assert(response.includes('example-response'))
         })
         it('should make a request and process an expected failure', async() => {
             await device.connect()
             const response = device.request('failed-request', 'never', 'failure!')
-            await expect(response).rejects.toEqual(expect.arrayContaining(['failure!']))
+            await assert.rejects(response, /failure!/)
         })
         it('should make a request and ignore non-matching responses', async() => {
             await device.connect()
             const response = await device.request('other-request', 'example-response')
-            expect(response).toEqual(expect.arrayContaining(['example-response']))
+            assert(response.includes('example-response'))
         })
         it('should timeout if a request was not satisfied on time', async() => {
             await device.connect()
             device.responseTimeout = 5
             const response = device.request('unknown-request', 'never')
-            await expect(response).rejects.toThrow('Timeout')
+            await assert.rejects(response, /Timeout/i)
             device.responseTimeout = 3000
         })
     })
@@ -139,13 +136,13 @@ describe('Normal Device Operation', () => {
     describe('Device Reconnect', () => {
         it('should try to reconnect if initial connection cannot be made', async() => {
             // Watch error handler
-            const error = jest.fn()
+            const error = mock.fn()
             device.on('error', error)
             // Watch connection
-            const connectEvent = jest.fn()
+            const connectEvent = mock.fn()
             device.on('connect', connectEvent)
             // Attempt connection
-            const connect = jest.spyOn(device, 'connect')
+            const connect = mock.method(device, 'connect')
             device.host = 'example.com'
             device.port = 81
             // 50ms timeout, 5ms reconnect
@@ -154,31 +151,31 @@ describe('Normal Device Operation', () => {
             const promise = device.connect()
             // Wait at least 150ms to ensure we catch a timeout + reconnect
             await delay(200)
-            expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
-            expect(error.mock.calls.length).toBeGreaterThanOrEqual(1)
-            expect(error).toHaveBeenCalledWith(expect.objectContaining({ message: 'Timeout connecting to example.com:81' }))
-            expect(connectEvent).toHaveBeenCalledTimes(0)
+            assert(connect.mock.calls.length >= 2)
+            assert(error.mock.calls.length >= 1)
+            assert(error.mock.calls.some(call => call.arguments[0].message.includes('Timeout connecting to example.com:81')))
+            assert.equal(connectEvent.mock.calls.length, 0)
             // Set to a valid host and check the original promise still resolves
             device.host = '127.0.0.1'
             device.port = port
-            await expect(promise).resolves.toBe(undefined)
+            assert.equal(await promise, undefined)
         })
         it('should try to reconnect after disconnecting on error', async() => {
             // Track close event
-            const close = jest.fn()
+            const close = mock.fn()
             device.on('close', close)
             device.on('error', () => {})
-            const connect = jest.spyOn(device, 'connect')
+            const connect = mock.method(device, 'connect')
             device.responseTimeout = 50
             device.reconnectInterval = 0.005
             await device.connect()
             device.socket.destroy(new Error('A Serious Failure'))
             await delay(50) // Device attempts reconnect after 5ms
-            expect(connect).toHaveBeenCalledTimes(2)
-            expect(close).toHaveBeenCalledTimes(1)
+            assert.equal(connect.mock.calls.length, 2)
+            assert.equal(close.mock.calls.length, 1)
         })
         it('should try to reconnect if the client closes the connection', async() => {
-            const connect = jest.spyOn(device, 'connect')
+            const connect = mock.method(device, 'connect')
             device.reconnectInterval = 0.005
             await device.connect()
             // Wait a split second to ensure the server receives the new connection
@@ -188,42 +185,42 @@ describe('Normal Device Operation', () => {
                 openSocket.end(res)
             })
             await delay(100)
-            expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
+            assert(connect.mock.calls.length >= 2)
         })
         it('should try to reconnect if a connection timeout occurs', async() => {
             // Watch error handler
-            const error = jest.fn()
+            const error = mock.fn()
             device.on('error', error)
             // Watch connection
-            const connectEvent = jest.fn()
+            const connectEvent = mock.fn()
             device.on('connect', connectEvent)
             // Watch timeout handler
-            const timeout = jest.fn()
+            const timeout = mock.fn()
             device.on('timeout', timeout)
             // Attempt connection
-            const connect = jest.spyOn(device, 'connect')
+            const connect = mock.method(device, 'connect')
             device.reconnectInterval = 0.005
             await device.connect()
             // Trigger a timeout
             device.socket.emit('timeout')
             // Wait at least 150ms to ensure we catch a timeout + reconnect
             await delay(200)
-            expect(connect.mock.calls.length).toBeGreaterThanOrEqual(2)
-            expect(error.mock.calls.length).toBeGreaterThanOrEqual(1)
-            expect(error).toHaveBeenCalledWith(expect.objectContaining({ message: `Timeout connecting to 127.0.0.1:${port}` }))
-            expect(timeout).toHaveBeenCalled()
+            assert(connect.mock.calls.length >= 2)
+            assert(error.mock.calls.length >= 1)
+            assert(error.mock.calls.some(call => call.arguments[0].message === `Timeout connecting to 127.0.0.1:${port}`))
+            assert(timeout.mock.calls.length > 0)
         })
     })
 
     describe('Device Errors', () => {
         it('should emit errors from the socket', async() => {
-            const error = jest.fn()
+            const error = mock.fn()
             device.on('error', error)
             // Skip reconnects, we're not testing that
             device.reconnectInterval = 0
             await device.connect()
             device.socket.emit('error', 'real error')
-            expect(error).toHaveBeenCalledWith('real error')
+            assert.equal(error.mock.calls[0].arguments[0], 'real error')
         })
     })
 })

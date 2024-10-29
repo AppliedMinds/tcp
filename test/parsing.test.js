@@ -1,12 +1,9 @@
-import { jest } from '@jest/globals'
-import net from 'net'
-import { Transform } from 'stream'
-import { Device } from '..'
-
-// Note for future maintenance: can be replaced with
-// `import { setTimeout: delay } from 'timers/promises'`
-// (Node 15+ support only)
-const delay = ms => new Promise(res => setTimeout(res, ms))
+import assert from 'node:assert/strict'
+import net from 'node:net'
+import { Transform } from 'node:stream'
+import { describe, it, mock } from 'node:test'
+import { setTimeout as delay } from 'node:timers/promises'
+import { Device } from '../index.js'
 
 class ByteLengthParser extends Transform {
     constructor({ length = 4, ...options } = {}) {
@@ -40,7 +37,7 @@ describe('Data Parsing', () => {
         await new Promise(res => server.listen(3004, res))
 
         const device = new Device({ host: '127.0.0.1', port: 3004, parser: new ByteLengthParser() })
-        const receive = jest.fn()
+        const receive = mock.fn()
         device.on('data', receive)
         await device.connect()
 
@@ -53,8 +50,8 @@ describe('Data Parsing', () => {
         // Wait for the client to receive the data
         await delay(10)
 
-        expect(receive).toHaveBeenCalledWith(testData.slice(0, 4))
-        expect(receive).toHaveBeenCalledWith(testData.slice(4))
+        assert.deepEqual(receive.mock.calls[0].arguments[0], testData.slice(0, 4))
+        assert.deepEqual(receive.mock.calls[1].arguments[0], testData.slice(4))
 
         await device.close()
         await new Promise(res => server.close(res))
@@ -77,10 +74,10 @@ describe('Data Parsing', () => {
         openSocket.end()
         await delay(50) // Device attempts reconnect after 5ms
 
-        expect(device.dataPipe.listenerCount('data')).toBe(1)
-        expect(device.dataPipe.listenerCount('unpipe')).toBe(1)
+        assert.equal(device.dataPipe.listenerCount('data'), 1)
+        assert.equal(device.dataPipe.listenerCount('unpipe'), 1)
         // Make sure the data pipe is still open
-        expect(device.dataPipe._writableState.ended).toBe(false)
+        assert.equal(device.dataPipe._writableState.ended, false)
 
         await device.close()
         await new Promise(res => server.close(res))
