@@ -17,7 +17,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/appliedminds/tcp"
+    "url": "git+https://github.com/appliedminds/tcp.git"
   },
   "bugs": {
     "url": "https://github.com/appliedminds/tcp/issues"
