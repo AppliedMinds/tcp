@@ -68,7 +68,7 @@ class Motor {
 API Docs
 --------
 
-### `new Device({ host : String, port : Number, parser : Transform, reconnectInterval? : Number, responseTimeout? : Number })`
+### `new Device({ host : String, port : Number, parser : Transform, reconnectInterval? : Number, responseTimeout? : Number, idleTimeout? : Number })`
 
 Create a new TCP client.
 
@@ -76,6 +76,7 @@ Create a new TCP client.
   * `port`: TCP port of device/service
   * `parser`: A data parser that extends [Stream.Transform](https://nodejs.org/api/stream.html#stream_class_stream_transform) (default: no parsing)
   * `reconnectInterval`: Seconds until reconnect attempt after disconnect or error, use `0` for no reconnects (default: `3`)
+  * `idleTimeout`: Seconds until a connection is closed for inactivity (default: `0`)
   * `responseTimeout`: Seconds until a call to `request()` will automatically time out (default: `3`)
 
 ### Event: `'close'`

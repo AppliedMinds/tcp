@@ -6,7 +6,7 @@ const DEFAULT_TIMEOUT = 5 // seconds
 const SECOND = 1000 // ms
 
 export class Device extends EventEmitter {
-    constructor({ host, ip, port, parser, reconnectInterval = DEFAULT_RECONNECT_INTERVAL, responseTimeout = DEFAULT_TIMEOUT }) {
+    constructor({ host, ip, port, parser, reconnectInterval = DEFAULT_RECONNECT_INTERVAL, responseTimeout = DEFAULT_TIMEOUT, idleTimeout = DEFAULT_TIMEOUT }) {
         super()
         if (ip) {
             console.warn('Device.ip has been deprecated. Please use Device.host instead.')
@@ -16,6 +16,7 @@ export class Device extends EventEmitter {
         this.port = port
         this.reconnectInterval = reconnectInterval
         this.responseTimeout = responseTimeout * SECOND
+        this.idleTimeout = idleTimeout * SECOND
         this.connected = false
         this.userClose = false
         this.parser = parser
@@ -31,7 +32,7 @@ export class Device extends EventEmitter {
         this.socket.on('timeout', this.onTimeout.bind(this, this.host, this.port))
         // Keep connection alive
         this.socket.setKeepAlive(true)
-        this.socket.setTimeout(this.responseTimeout)
+        this.socket.setTimeout(this.idleTimeout)
         // Send immediately when write() is called, no buffering
         this.socket.setNoDelay()
 
