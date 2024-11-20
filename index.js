@@ -6,7 +6,7 @@ const DEFAULT_TIMEOUT = 5 // seconds
 const SECOND = 1000 // ms
 
 export class Device extends EventEmitter {
-    constructor({ host, ip, port, parser, reconnectInterval = DEFAULT_RECONNECT_INTERVAL, responseTimeout = DEFAULT_TIMEOUT, idleTimeout = DEFAULT_TIMEOUT }) {
+    constructor({ host, ip, port, parser, reconnectInterval = DEFAULT_RECONNECT_INTERVAL, responseTimeout = DEFAULT_TIMEOUT, idleTimeout = 0 }) {
         super()
         if (ip) {
             console.warn('Device.ip has been deprecated. Please use Device.host instead.')
